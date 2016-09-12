@@ -125,24 +125,11 @@ function playerDrop() {
     if (collide(arena, player)) {
         player.pos.y--;
         merge(arena, player);
-        playerReset();
+        player.reset();
         arenaSweep();
         updateScore();
     }
     dropCounter = 0;
-}
-
-function playerReset() {
-    const pieces = 'ILJOTSZ';
-    player.matrix = createPiece(pieces[pieces.length * Math.random() | 0]);
-    player.pos.y = 0;
-    player.pos.x = (arena[0].length / 2 | 0) -
-                   (player.matrix[0].length / 2 | 0);
-    if (collide(arena, player)) {
-        arena.forEach(row => row.fill(0));
-        player.score = 0;
-        updateScore();
-    }
 }
 
 function rotate(matrix, dir) {
@@ -206,6 +193,8 @@ class Player
         this.pos =  {x: 0, y: 0};
         this.matrix =  null;
         this.score =  0;
+
+        this.reset();
     }
 
     move(dir)
@@ -213,6 +202,20 @@ class Player
         this.pos.x += dir;
         if (collide(arena, this)) {
             this.pos.x -= dir;
+        }
+    }
+
+    reset()
+    {
+        const pieces = 'ILJOTSZ';
+        this.matrix = createPiece(pieces[pieces.length * Math.random() | 0]);
+        this.pos.y = 0;
+        this.pos.x = (arena[0].length / 2 | 0) -
+                       (this.matrix[0].length / 2 | 0);
+        if (collide(arena, this)) {
+            arena.forEach(row => row.fill(0));
+            this.score = 0;
+            updateScore();
         }
     }
 
@@ -249,6 +252,5 @@ document.addEventListener('keydown', event => {
     }
 });
 
-playerReset();
 updateScore();
 update();
