@@ -124,14 +124,14 @@ function update(time = 0) {
     const deltaTime = time - lastTime;
     lastTime = time;
 
-    player.update(deltaTime);
+    tetris.update(deltaTime);
 
     tetris.draw();
     requestAnimationFrame(update);
 }
 
 function updateScore() {
-    document.getElementById('score').innerText = player.score;
+    document.getElementById('score').innerText = tetris.player.score;
 }
 
 const colors = [
@@ -226,6 +226,8 @@ class Tetris
     constructor(context)
     {
         this._context = context;
+
+        this.player = new Player;
     }
 
     draw()
@@ -236,7 +238,7 @@ class Tetris
                                this._context.canvas.height);
 
         this.drawMatrix(arena, {x: 0, y: 0});
-        this.drawMatrix(player.matrix, player.pos);
+        this.drawMatrix(this.player.matrix, this.player.pos);
     }
 
     drawMatrix(matrix, offset)
@@ -252,23 +254,26 @@ class Tetris
             });
         });
     }
-}
 
-const player = new Player;
+    update(deltaTime)
+    {
+        this.player.update(deltaTime);
+    }
+}
 
 const tetris = new Tetris(context);
 
 document.addEventListener('keydown', event => {
     if (event.keyCode === 37) {
-        player.move(-1);
+        tetris.player.move(-1);
     } else if (event.keyCode === 39) {
-        player.move(1);
+        tetris.player.move(1);
     } else if (event.keyCode === 40) {
-        player.drop();
+        tetris.player.drop();
     } else if (event.keyCode === 81) {
-        player.rotate(-1);
+        tetris.player.rotate(-1);
     } else if (event.keyCode === 87) {
-        player.rotate(1);
+        tetris.player.rotate(1);
     }
 });
 
