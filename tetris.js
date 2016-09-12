@@ -132,13 +132,6 @@ function playerDrop() {
     dropCounter = 0;
 }
 
-function playerMove(dir) {
-    player.pos.x += dir;
-    if (collide(arena, player)) {
-        player.pos.x -= dir;
-    }
-}
-
 function playerReset() {
     const pieces = 'ILJOTSZ';
     player.matrix = createPiece(pieces[pieces.length * Math.random() | 0]);
@@ -229,15 +222,23 @@ class Player
         this.matrix =  null;
         this.score =  0;
     }
+
+    move(dir)
+    {
+        this.pos.x += dir;
+        if (collide(arena, this)) {
+            this.pos.x -= dir;
+        }
+    }
 }
 
 const player = new Player;
 
 document.addEventListener('keydown', event => {
     if (event.keyCode === 37) {
-        playerMove(-1);
+        player.move(-1);
     } else if (event.keyCode === 39) {
-        playerMove(1);
+        player.move(1);
     } else if (event.keyCode === 40) {
         playerDrop();
     } else if (event.keyCode === 81) {
