@@ -145,21 +145,6 @@ function playerReset() {
     }
 }
 
-function playerRotate(dir) {
-    const pos = player.pos.x;
-    let offset = 1;
-    rotate(player.matrix, dir);
-    while (collide(arena, player)) {
-        player.pos.x += offset;
-        offset = -(offset + (offset > 0 ? 1 : -1));
-        if (offset > player.matrix[0].length) {
-            rotate(player.matrix, -dir);
-            player.pos.x = pos;
-            return;
-        }
-    }
-}
-
 function rotate(matrix, dir) {
     for (let y = 0; y < matrix.length; ++y) {
         for (let x = 0; x < y; ++x) {
@@ -230,6 +215,22 @@ class Player
             this.pos.x -= dir;
         }
     }
+
+    rotate(dir)
+    {
+        const pos = this.pos.x;
+        let offset = 1;
+        rotate(this.matrix, dir);
+        while (collide(arena, this)) {
+            this.pos.x += offset;
+            offset = -(offset + (offset > 0 ? 1 : -1));
+            if (offset > this.matrix[0].length) {
+                rotate(this.matrix, -dir);
+                this.pos.x = pos;
+                return;
+            }
+        }
+    }
 }
 
 const player = new Player;
@@ -242,9 +243,9 @@ document.addEventListener('keydown', event => {
     } else if (event.keyCode === 40) {
         playerDrop();
     } else if (event.keyCode === 81) {
-        playerRotate(-1);
+        player.rotate(-1);
     } else if (event.keyCode === 87) {
-        playerRotate(1);
+        player.rotate(1);
     }
 });
 
