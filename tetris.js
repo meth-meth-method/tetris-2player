@@ -3,24 +3,6 @@ const context = canvas.getContext('2d');
 
 context.scale(20, 20);
 
-function arenaSweep() {
-    let rowCount = 1;
-    outer: for (let y = arena.length - 1; y > 0; --y) {
-        for (let x = 0; x < arena[y].length; ++x) {
-            if (arena[y][x] === 0) {
-                continue outer;
-            }
-        }
-
-        const row = arena.splice(y, 1)[0].fill(0);
-        arena.unshift(row);
-        ++y;
-
-        player.score += rowCount * 10;
-        rowCount *= 2;
-    }
-}
-
 function collide(arena, player) {
     const [m, o] = [player.matrix, player.pos];
     for (let y = 0; y < m.length; ++y) {
@@ -136,6 +118,27 @@ class Arena
         }
         this.matrix = matrix;
     }
+
+    sweep()
+    {
+        let rowCount = 1;
+        let score = 0;
+        outer: for (let y = this.matrix.length - 1; y > 0; --y) {
+            for (let x = 0; x < this.matrix[y].length; ++x) {
+                if (this.matrix[y][x] === 0) {
+                    continue outer;
+                }
+            }
+
+            const row = this.matrix.splice(y, 1)[0].fill(0);
+            this.matrix.unshift(row);
+            ++y;
+
+            score += rowCount * 10;
+            rowCount *= 2;
+        }
+        return score;
+    }
 }
 
 const arena = new Arena(12, 20);
@@ -161,7 +164,7 @@ class Player
             this.pos.y--;
             merge(arena.matrix, this);
             this.reset();
-            arenaSweep();
+            this.score += arena.sweep();
             updateScore();
         }
         this._dropCounter = 0;
