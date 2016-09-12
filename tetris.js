@@ -134,17 +134,6 @@ function updateScore() {
     document.getElementById('score').innerText = tetris.player.score;
 }
 
-const colors = [
-    null,
-    '#FF0D72',
-    '#0DC2FF',
-    '#0DFF72',
-    '#F538FF',
-    '#FF8E0D',
-    '#FFE138',
-    '#3877FF',
-];
-
 const arena = createMatrix(12, 20);
 
 class Player
@@ -227,6 +216,17 @@ class Tetris
     {
         this._context = context;
 
+        this.colors = [
+            null,
+            '#FF0D72',
+            '#0DC2FF',
+            '#0DFF72',
+            '#F538FF',
+            '#FF8E0D',
+            '#FFE138',
+            '#3877FF',
+        ];
+
         this.player = new Player;
     }
 
@@ -246,7 +246,7 @@ class Tetris
         matrix.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value !== 0) {
-                    this._context.fillStyle = colors[value];
+                    this._context.fillStyle = this.colors[value];
                     this._context.fillRect(x + offset.x,
                                            y + offset.y,
                                            1, 1);
