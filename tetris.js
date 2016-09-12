@@ -280,11 +280,22 @@ class Tetris
     }
 }
 
-const canvas = document.getElementById('tetris');
-const context = canvas.getContext('2d');
-context.scale(20, 20);
+const tetri = [];
+const playerElements = document.querySelectorAll('.player');
+[...playerElements].forEach(element => {
+    const canvas = element.querySelector('canvas');
+    const context = canvas.getContext('2d');
+    context.scale(20, 20);
 
-const tetris = new Tetris(context);
+    const tetris = new Tetris(context);
+
+    const score = element.querySelector('.score');
+    tetris.player.events.listen(tetris.player.EVENT_SCORE_UPDATE, () => {
+        score.innerText = tetris.player.score;
+    });
+
+    tetri.push(tetris);
+});
 
 tetris.player.events.listen(tetris.player.EVENT_SCORE_UPDATE, () => {
     document.getElementById('score').innerText = tetris.player.score;
@@ -292,15 +303,15 @@ tetris.player.events.listen(tetris.player.EVENT_SCORE_UPDATE, () => {
 
 document.addEventListener('keydown', event => {
     if (event.keyCode === 37) {
-        tetris.player.move(-1);
+        tetri[0].player.move(-1);
     } else if (event.keyCode === 39) {
-        tetris.player.move(1);
+        tetri[0].player.move(1);
     } else if (event.keyCode === 40) {
-        tetris.player.drop();
+        tetri[0].player.drop();
     } else if (event.keyCode === 81) {
-        tetris.player.rotate(-1);
+        tetri[0].player.rotate(-1);
     } else if (event.keyCode === 87) {
-        tetris.player.rotate(1);
+        tetri[0].player.rotate(1);
     }
 });
 
