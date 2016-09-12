@@ -35,14 +35,6 @@ function collide(arena, player) {
     return false;
 }
 
-function createMatrix(w, h) {
-    const matrix = [];
-    while (h--) {
-        matrix.push(new Array(w).fill(0));
-    }
-    return matrix;
-}
-
 function createPiece(type) {
     if (type === 'T') {
         return [
@@ -134,7 +126,19 @@ function updateScore() {
     document.getElementById('score').innerText = tetris.player.score;
 }
 
-const arena = createMatrix(12, 20);
+class Arena
+{
+    constructor(w, h)
+    {
+        const matrix = [];
+        while (h--) {
+            matrix.push(new Array(w).fill(0));
+        }
+        this.matrix = matrix;
+    }
+}
+
+const arena = new Arena(12, 20);
 
 class Player
 {
@@ -153,9 +157,9 @@ class Player
     drop()
     {
         this.pos.y++;
-        if (collide(arena, this)) {
+        if (collide(arena.matrix, this)) {
             this.pos.y--;
-            merge(arena, this);
+            merge(arena.matrix, this);
             this.reset();
             arenaSweep();
             updateScore();
@@ -166,7 +170,7 @@ class Player
     move(dir)
     {
         this.pos.x += dir;
-        if (collide(arena, this)) {
+        if (collide(arena.matrix, this)) {
             this.pos.x -= dir;
         }
     }
@@ -176,10 +180,10 @@ class Player
         const pieces = 'ILJOTSZ';
         this.matrix = createPiece(pieces[pieces.length * Math.random() | 0]);
         this.pos.y = 0;
-        this.pos.x = (arena[0].length / 2 | 0) -
+        this.pos.x = (arena.matrix[0].length / 2 | 0) -
                        (this.matrix[0].length / 2 | 0);
-        if (collide(arena, this)) {
-            arena.forEach(row => row.fill(0));
+        if (collide(arena.matrix, this)) {
+            arena.matrix.forEach(row => row.fill(0));
             this.score = 0;
             updateScore();
         }
@@ -190,7 +194,7 @@ class Player
         const pos = this.pos.x;
         let offset = 1;
         rotate(this.matrix, dir);
-        while (collide(arena, this)) {
+        while (collide(arena.matrix, this)) {
             this.pos.x += offset;
             offset = -(offset + (offset > 0 ? 1 : -1));
             if (offset > this.matrix[0].length) {
@@ -237,7 +241,7 @@ class Tetris
                                this._context.canvas.width,
                                this._context.canvas.height);
 
-        this.drawMatrix(arena, {x: 0, y: 0});
+        this.drawMatrix(arena.matrix, {x: 0, y: 0});
         this.drawMatrix(this.player.matrix, this.player.pos);
     }
 
