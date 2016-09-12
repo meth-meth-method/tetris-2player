@@ -3,21 +3,6 @@ const context = canvas.getContext('2d');
 
 context.scale(20, 20);
 
-let lastTime = 0;
-function update(time = 0) {
-    const deltaTime = time - lastTime;
-    lastTime = time;
-
-    tetris.update(deltaTime);
-
-    tetris.draw();
-    requestAnimationFrame(update);
-}
-
-function updateScore() {
-    document.getElementById('score').innerText = tetris.player.score;
-}
-
 class Arena
 {
     constructor(w, h)
@@ -287,6 +272,21 @@ document.addEventListener('keydown', event => {
         tetris.player.rotate(1);
     }
 });
+
+let lastTime = 0;
+function update(time = 0) {
+    const deltaTime = time - lastTime;
+    lastTime = time;
+
+    tetris.update(deltaTime);
+
+    tetris.draw();
+    requestAnimationFrame(update);
+}
+
+function updateScore() {
+    document.getElementById('score').innerText = tetris.player.score;
+}
 
 updateScore();
 update();
