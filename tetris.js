@@ -1,8 +1,3 @@
-const canvas = document.getElementById('tetris');
-const context = canvas.getContext('2d');
-
-context.scale(20, 20);
-
 class Arena
 {
     constructor(w, h)
@@ -256,6 +251,10 @@ class Tetris
         this.player.update(deltaTime);
     }
 }
+
+const canvas = document.getElementById('tetris');
+const context = canvas.getContext('2d');
+context.scale(20, 20);
 
 const tetris = new Tetris(context);
 
