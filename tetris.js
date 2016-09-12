@@ -123,11 +123,9 @@ class Arena
     {
         let rowCount = 1;
         let score = 0;
-        outer: for (let y = this.matrix.length - 1; y > 0; --y) {
-            for (let x = 0; x < this.matrix[y].length; ++x) {
-                if (this.matrix[y][x] === 0) {
-                    continue outer;
-                }
+        for (let y = this.matrix.length - 1; y > 0; --y) {
+            if (this.matrix[y].some(v => v === 0)) {
+                continue;
             }
 
             const row = this.matrix.splice(y, 1)[0].fill(0);
