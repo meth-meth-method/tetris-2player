@@ -95,18 +95,15 @@ class Arena
         this.matrix = matrix;
     }
 
-    collide(m, o)
+    collide(matrix, offset)
     {
-        for (let y = 0; y < m.length; ++y) {
-            for (let x = 0; x < m[y].length; ++x) {
-                if (m[y][x] !== 0 &&
-                    (this.matrix[y + o.y] &&
-                    this.matrix[y + o.y][x + o.x]) !== 0) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return matrix.some((row, y) => {
+            return row.some((value, x) => {
+                return value !== 0 &&
+                    (this.matrix[y + offset.y] &&
+                     this.matrix[y + offset.y][x + offset.x]) !== 0;
+            });
+        });
     }
 
     merge(matrix, offset)
