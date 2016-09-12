@@ -89,27 +89,6 @@ function createPiece(type) {
     }
 }
 
-function draw() {
-    context.fillStyle = '#000';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    drawMatrix(arena, {x: 0, y: 0});
-    drawMatrix(player.matrix, player.pos);
-}
-
-function drawMatrix(matrix, offset) {
-    matrix.forEach((row, y) => {
-        row.forEach((value, x) => {
-            if (value !== 0) {
-                context.fillStyle = colors[value];
-                context.fillRect(x + offset.x,
-                                 y + offset.y,
-                                 1, 1);
-            }
-        });
-    });
-}
-
 function merge(arena, player) {
     player.matrix.forEach((row, y) => {
         row.forEach((value, x) => {
@@ -147,7 +126,7 @@ function update(time = 0) {
 
     player.update(deltaTime);
 
-    draw();
+    tetris.draw();
     requestAnimationFrame(update);
 }
 
@@ -242,7 +221,42 @@ class Player
     }
 }
 
+class Tetris
+{
+    constructor(context)
+    {
+        this._context = context;
+    }
+
+    draw()
+    {
+        this._context.fillStyle = '#000';
+        this._context.fillRect(0, 0,
+                               this._context.canvas.width,
+                               this._context.canvas.height);
+
+        this.drawMatrix(arena, {x: 0, y: 0});
+        this.drawMatrix(player.matrix, player.pos);
+    }
+
+    drawMatrix(matrix, offset)
+    {
+        matrix.forEach((row, y) => {
+            row.forEach((value, x) => {
+                if (value !== 0) {
+                    this._context.fillStyle = colors[value];
+                    this._context.fillRect(x + offset.x,
+                                           y + offset.y,
+                                           1, 1);
+                }
+            });
+        });
+    }
+}
+
 const player = new Player;
+
+const tetris = new Tetris(context);
 
 document.addEventListener('keydown', event => {
     if (event.keyCode === 37) {
