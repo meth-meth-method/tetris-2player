@@ -120,18 +120,6 @@ function merge(arena, player) {
     });
 }
 
-function playerDrop() {
-    player.pos.y++;
-    if (collide(arena, player)) {
-        player.pos.y--;
-        merge(arena, player);
-        player.reset();
-        arenaSweep();
-        updateScore();
-    }
-    dropCounter = 0;
-}
-
 function rotate(matrix, dir) {
     for (let y = 0; y < matrix.length; ++y) {
         for (let x = 0; x < y; ++x) {
@@ -162,7 +150,7 @@ function update(time = 0) {
 
     dropCounter += deltaTime;
     if (dropCounter > dropInterval) {
-        playerDrop();
+        player.drop();
     }
 
     draw();
@@ -195,6 +183,19 @@ class Player
         this.score =  0;
 
         this.reset();
+    }
+
+    drop()
+    {
+        this.pos.y++;
+        if (collide(arena, this)) {
+            this.pos.y--;
+            merge(arena, this);
+            this.reset();
+            arenaSweep();
+            updateScore();
+        }
+        dropCounter = 0;
     }
 
     move(dir)
@@ -244,7 +245,7 @@ document.addEventListener('keydown', event => {
     } else if (event.keyCode === 39) {
         player.move(1);
     } else if (event.keyCode === 40) {
-        playerDrop();
+        player.drop();
     } else if (event.keyCode === 81) {
         player.rotate(-1);
     } else if (event.keyCode === 87) {
