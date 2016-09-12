@@ -1,3 +1,28 @@
+class Events
+{
+    constructor()
+    {
+        this._listeners = [];
+    }
+
+    listen(name, callback)
+    {
+        this._listeners.push({
+            name,
+            callback,
+        });
+    }
+
+    emit(name)
+    {
+        this._listeners.forEach(listener => {
+            if (listener.name === name) {
+                listener.callback();
+            }
+        });
+    }
+}
+
 class Arena
 {
     constructor(w, h)
@@ -57,6 +82,9 @@ class Player
     {
         this._dropCounter = 0;
         this._dropInterval = 1000;
+
+        this.events = new Events();
+        this.EVENT_SCORE_UPDATE = 'score-update';
 
         this.arena = arena;
 
@@ -127,7 +155,7 @@ class Player
             this.arena.merge(this.matrix, this.pos);
             this.reset();
             this.score += this.arena.sweep();
-            updateScore();
+            this.events.emit(this.EVENT_SCORE_UPDATE);
         }
         this._dropCounter = 0;
     }
@@ -150,7 +178,7 @@ class Player
         if (this.collide()) {
             this.arena.matrix.forEach(row => row.fill(0));
             this.score = 0;
-            updateScore();
+            this.events.emit(this.EVENT_SCORE_UPDATE);
         }
     }
 
@@ -258,6 +286,10 @@ context.scale(20, 20);
 
 const tetris = new Tetris(context);
 
+tetris.player.events.listen(tetris.player.EVENT_SCORE_UPDATE, () => {
+    document.getElementById('score').innerText = tetris.player.score;
+});
+
 document.addEventListener('keydown', event => {
     if (event.keyCode === 37) {
         tetris.player.move(-1);
@@ -283,9 +315,4 @@ function update(time = 0) {
     requestAnimationFrame(update);
 }
 
-function updateScore() {
-    document.getElementById('score').innerText = tetris.player.score;
-}
-
-updateScore();
 update();
