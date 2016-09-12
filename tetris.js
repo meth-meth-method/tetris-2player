@@ -63,16 +63,6 @@ function createPiece(type) {
     }
 }
 
-function merge(arena, player) {
-    player.matrix.forEach((row, y) => {
-        row.forEach((value, x) => {
-            if (value !== 0) {
-                arena[y + player.pos.y][x + player.pos.x] = value;
-            }
-        });
-    });
-}
-
 function rotate(matrix, dir) {
     for (let y = 0; y < matrix.length; ++y) {
         for (let x = 0; x < y; ++x) {
@@ -119,6 +109,17 @@ class Arena
         this.matrix = matrix;
     }
 
+    merge(matrix, offset)
+    {
+        matrix.forEach((row, y) => {
+            row.forEach((value, x) => {
+                if (value !== 0) {
+                    this.matrix[y + offset.y][x + offset.x] = value;
+                }
+            });
+        });
+    }
+
     sweep()
     {
         let rowCount = 1;
@@ -160,7 +161,7 @@ class Player
         this.pos.y++;
         if (collide(arena.matrix, this)) {
             this.pos.y--;
-            merge(arena.matrix, this);
+            arena.merge(this.matrix, this.pos);
             this.reset();
             this.score += arena.sweep();
             updateScore();
