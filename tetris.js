@@ -3,20 +3,6 @@ const context = canvas.getContext('2d');
 
 context.scale(20, 20);
 
-function collide(arena, player) {
-    const [m, o] = [player.matrix, player.pos];
-    for (let y = 0; y < m.length; ++y) {
-        for (let x = 0; x < m[y].length; ++x) {
-            if (m[y][x] !== 0 &&
-                (arena[y + o.y] &&
-                arena[y + o.y][x + o.x]) !== 0) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
 function createPiece(type) {
     if (type === 'T') {
         return [
@@ -109,6 +95,20 @@ class Arena
         this.matrix = matrix;
     }
 
+    collide(m, o)
+    {
+        for (let y = 0; y < m.length; ++y) {
+            for (let x = 0; x < m[y].length; ++x) {
+                if (m[y][x] !== 0 &&
+                    (this.matrix[y + o.y] &&
+                    this.matrix[y + o.y][x + o.x]) !== 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     merge(matrix, offset)
     {
         matrix.forEach((row, y) => {
@@ -159,7 +159,7 @@ class Player
     drop()
     {
         this.pos.y++;
-        if (collide(arena.matrix, this)) {
+        if (arena.collide(this.matrix, this.pos)) {
             this.pos.y--;
             arena.merge(this.matrix, this.pos);
             this.reset();
@@ -172,7 +172,7 @@ class Player
     move(dir)
     {
         this.pos.x += dir;
-        if (collide(arena.matrix, this)) {
+        if (arena.collide(this.matrix, this.pos)) {
             this.pos.x -= dir;
         }
     }
@@ -184,7 +184,7 @@ class Player
         this.pos.y = 0;
         this.pos.x = (arena.matrix[0].length / 2 | 0) -
                        (this.matrix[0].length / 2 | 0);
-        if (collide(arena.matrix, this)) {
+        if (arena.collide(this.matrix, this.pos)) {
             arena.matrix.forEach(row => row.fill(0));
             this.score = 0;
             updateScore();
@@ -196,7 +196,7 @@ class Player
         const pos = this.pos.x;
         let offset = 1;
         rotate(this.matrix, dir);
-        while (collide(arena.matrix, this)) {
+        while (arena.collide(this.matrix, this.pos)) {
             this.pos.x += offset;
             offset = -(offset + (offset > 0 ? 1 : -1));
             if (offset > this.matrix[0].length) {
