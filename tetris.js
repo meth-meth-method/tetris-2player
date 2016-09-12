@@ -140,18 +140,12 @@ function rotate(matrix, dir) {
     }
 }
 
-let dropCounter = 0;
-let dropInterval = 1000;
-
 let lastTime = 0;
 function update(time = 0) {
     const deltaTime = time - lastTime;
     lastTime = time;
 
-    dropCounter += deltaTime;
-    if (dropCounter > dropInterval) {
-        player.drop();
-    }
+    player.update(deltaTime);
 
     draw();
     requestAnimationFrame(update);
@@ -178,6 +172,9 @@ class Player
 {
     constructor()
     {
+        this._dropCounter = 0;
+        this._dropInterval = 1000;
+
         this.pos =  {x: 0, y: 0};
         this.matrix =  null;
         this.score =  0;
@@ -195,7 +192,7 @@ class Player
             arenaSweep();
             updateScore();
         }
-        dropCounter = 0;
+        this._dropCounter = 0;
     }
 
     move(dir)
@@ -233,6 +230,14 @@ class Player
                 this.pos.x = pos;
                 return;
             }
+        }
+    }
+
+    update(deltaTime)
+    {
+        this._dropCounter += deltaTime;
+        if (this._dropCounter > this._dropInterval) {
+            this.drop();
         }
     }
 }
