@@ -221,11 +221,17 @@ const colors = [
 
 const arena = createMatrix(12, 20);
 
-const player = {
-    pos: {x: 0, y: 0},
-    matrix: null,
-    score: 0,
+class Player
+{
+    constructor()
+    {
+        this.pos =  {x: 0, y: 0};
+        this.matrix =  null;
+        this.score =  0;
+    }
 }
+
+const player = new Player;
 
 document.addEventListener('keydown', event => {
     if (event.keyCode === 37) {
