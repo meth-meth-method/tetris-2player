@@ -144,22 +144,21 @@ class Player
 
     rotate(dir)
     {
-        const player = this.player;
-        const pos = player.pos.x;
+        const pos = this.pos.x;
         let offset = 1;
-        player.rotate(dir);
-        while (this.collidess()) {
-            player.pos.x += offset;
+        this.rotateMatrix(this.matrix, dir);
+        while (this.collides()) {
+            this.pos.x += offset;
             offset = -(offset + (offset > 0 ? 1 : -1));
-            if (offset > player.matrix[0].length) {
-                player.rotate(-dir);
-                player.pos.x = pos;
+            if (offset > this.matrix[0].length) {
+                this.rotateMatrix(this.matrix, -dir);
+                this.pos.x = pos;
                 return;
             }
         }
     }
 
-    rotate(dir)
+    rotateMatrix(dir)
     {
         for (let y = 0; y < this.matrix.length; ++y) {
             for (let x = 0; x < y; ++x) {
