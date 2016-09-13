@@ -380,11 +380,19 @@ const keyHandler = event => {
         [52, 54, 53, 57, 55],
     ].forEach((keys, index) => {
         const p = tetri.instances[index].player;
-        if (event.keyCode === keys[0]) {
-            p.move(-1);
-        } else if (event.keyCode === keys[1]) {
-            p.move(1);
-        } else if (event.keyCode === keys[2]) {
+        if (event.type === 'keydown') {
+            if (event.keyCode === keys[0]) {
+                p.move(-1);
+            } else if (event.keyCode === keys[1]) {
+                p.move(1);
+            } else if (event.keyCode === keys[3]) {
+                p.rotate(-1);
+            } else if (event.keyCode === keys[4]) {
+                p.rotate(1);
+            }
+        }
+
+        if (event.keyCode === keys[2]) {
             if (event.type === 'keydown') {
                 if (p.dropInterval !== p.DROP_QUICK) {
                     p.drop();
@@ -393,10 +401,6 @@ const keyHandler = event => {
             } else {
                 p.dropInterval = p.DROP_SLOW;
             }
-        } else if (event.keyCode === keys[3]) {
-            p.rotate(-1);
-        } else if (event.keyCode === keys[4]) {
-            p.rotate(1);
         }
     });
 }
