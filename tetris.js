@@ -85,8 +85,11 @@ class Player
 {
     constructor(governor, tetris)
     {
+        this.DROP_QUICK = 60;
+        this.DROP_SLOW = 1000;
+
         this._dropCounter = 0;
-        this._dropInterval = 1000;
+        this.dropInterval = this.DROP_SLOW;
 
         this.governor = governor;
         this.tetris = tetris;
@@ -180,7 +183,7 @@ class Player
     update(deltaTime)
     {
         this._dropCounter += deltaTime;
-        if (this._dropCounter > this._dropInterval) {
+        if (this._dropCounter > this.dropInterval) {
             this.drop();
         }
     }
@@ -371,25 +374,35 @@ class TetrisGovernor
 const element = document.querySelector('#tetri');
 const tetri = new TetrisGovernor(element);
 
-document.addEventListener('keydown', event => {
+const keyHandler = event => {
     [
         [65, 68, 83, 81, 69],
         [52, 54, 53, 57, 55],
     ].forEach((keys, index) => {
-        const t = tetri.instances[index];
+        const p = tetri.instances[index].player;
         if (event.keyCode === keys[0]) {
-            t.player.move(-1);
+            p.move(-1);
         } else if (event.keyCode === keys[1]) {
-            t.player.move(1);
+            p.move(1);
         } else if (event.keyCode === keys[2]) {
-            t.player.drop();
+            if (event.type === 'keydown') {
+                if (p.dropInterval !== p.DROP_QUICK) {
+                    p.drop();
+                    p.dropInterval = p.DROP_QUICK;
+                }
+            } else {
+                p.dropInterval = p.DROP_SLOW;
+            }
         } else if (event.keyCode === keys[3]) {
-            t.player.rotate(-1);
+            p.rotate(-1);
         } else if (event.keyCode === keys[4]) {
-            t.player.rotate(1);
+            p.rotate(1);
         }
     });
-});
+}
+
+document.addEventListener('keydown', keyHandler);
+document.addEventListener('keyup', keyHandler);
 
 let lastTime = 0;
 function update(time = 0) {
