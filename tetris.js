@@ -34,7 +34,12 @@ class Arena
         this.matrix = matrix;
     }
 
-    collide(matrix, offset)
+    clear()
+    {
+        this.matrix.forEach(row => row.fill(0));
+    }
+
+    collides(matrix, offset)
     {
         return matrix.some((row, y) => {
             return row.some((value, x) => {
@@ -78,21 +83,189 @@ class Arena
 
 class Player
 {
-    constructor(arena)
+    constructor(governor, tetris)
     {
         this._dropCounter = 0;
         this._dropInterval = 1000;
 
-        this.events = new Events();
-        this.EVENT_SCORE_UPDATE = 'score-update';
+        this.governor = governor;
+        this.tetris = tetris;
+        this.arena = tetris.arena;
 
-        this.arena = arena;
+        this.events = new Events();
 
         this.pos =  {x: 0, y: 0};
         this.matrix =  null;
         this.score =  0;
 
         this.reset();
+    }
+
+    collides()
+    {
+        return this.arena.collides(this.matrix, this.pos);
+    }
+
+    drop()
+    {
+        this.pos.y++;
+        if (this.collides()) {
+            this.pos.y--;
+            this.arena.merge(this.matrix, this.pos);
+            this.reset();
+            this.score += this.arena.sweep();
+            this.tetris.updateScore();
+        }
+        this._dropCounter = 0;
+    }
+
+    move(dir)
+    {
+        this.pos.x += dir;
+        if (this.collides()) {
+            this.pos.x -= dir;
+        }
+    }
+
+    reset()
+    {
+        this.matrix = this.governor.getNextPiece();
+        this.pos.y = 0;
+        this.pos.x = (this.arena.matrix[0].length / 2 | 0) -
+                     (this.matrix[0].length / 2 | 0);
+        if (this.collides()) {
+            this.arena.clear();
+            this.score = 0;
+        }
+    }
+
+    rotate(dir)
+    {
+        const player = this.player;
+        const pos = player.pos.x;
+        let offset = 1;
+        player.rotate(dir);
+        while (this.collidess()) {
+            player.pos.x += offset;
+            offset = -(offset + (offset > 0 ? 1 : -1));
+            if (offset > player.matrix[0].length) {
+                player.rotate(-dir);
+                player.pos.x = pos;
+                return;
+            }
+        }
+    }
+
+    rotate(dir)
+    {
+        for (let y = 0; y < this.matrix.length; ++y) {
+            for (let x = 0; x < y; ++x) {
+                [
+                    this.matrix[x][y],
+                    this.matrix[y][x],
+                ] = [
+                    this.matrix[y][x],
+                    this.matrix[x][y],
+                ];
+            }
+        }
+
+        if (dir > 0) {
+            this.matrix.forEach(row => row.reverse());
+        } else {
+            this.matrix.reverse();
+        }
+    }
+
+    update(deltaTime)
+    {
+        this._dropCounter += deltaTime;
+        if (this._dropCounter > this._dropInterval) {
+            this.drop();
+        }
+    }
+}
+
+class Tetris
+{
+    constructor(governor, element)
+    {
+        this._governor = governor;
+
+        this._element = element;
+
+        this._context = this._element
+            .querySelector('canvas')
+            .getContext('2d');
+
+        this.events = new Events();
+
+        this.arena = new Arena(12, 20);
+        this.player = new Player(governor, this);
+
+        const scale = [
+            this._context.canvas.width / this.arena.matrix[0].length,
+            this._context.canvas.height / this.arena.matrix.length,
+        ];
+
+        this._context.scale(...scale);
+    }
+
+    draw()
+    {
+        this._context.fillStyle = '#000';
+        this._context.fillRect(0, 0,
+                               this._context.canvas.width,
+                               this._context.canvas.height);
+
+        this.drawMatrix(this.arena.matrix, {x: 0, y: 0});
+        this.drawMatrix(this.player.matrix, this.player.pos);
+    }
+
+    drawMatrix(matrix, offset)
+    {
+        this._governor.drawMatrix(this._context, matrix, offset);
+    }
+
+    update(deltaTime)
+    {
+        this.player.update(deltaTime);
+    }
+
+    updateScore()
+    {
+        this._element.querySelector('.score')
+            .innerText = this.player.score;
+    }
+}
+
+class TetrisGovernor
+{
+    constructor(element)
+    {
+        this.colors = [
+            null,
+            '#FF0D72',
+            '#0DC2FF',
+            '#0DFF72',
+            '#F538FF',
+            '#FF8E0D',
+            '#FFE138',
+            '#3877FF',
+        ];
+
+
+        this.preview = element.querySelector('.preview canvas').getContext('2d');
+        this.preview.scale(20, 20);
+        this.getNextPiece();
+
+        this.instances = [];
+
+        const playerElements = element.querySelectorAll('.player');
+        [...playerElements].forEach(element => {
+            const tetris = new Tetris(this, element);
+            this.instances.push(tetris);
+        });
     }
 
     createPiece(type)
@@ -142,177 +315,80 @@ class Player
         }
     }
 
-    collide()
+    createRandomPiece()
     {
-        return this.arena.collide(this.matrix, this.pos);
-    }
-
-    drop()
-    {
-        this.pos.y++;
-        if (this.collide()) {
-            this.pos.y--;
-            this.arena.merge(this.matrix, this.pos);
-            this.reset();
-            this.score += this.arena.sweep();
-            this.events.emit(this.EVENT_SCORE_UPDATE);
-        }
-        this._dropCounter = 0;
-    }
-
-    move(dir)
-    {
-        this.pos.x += dir;
-        if (this.collide()) {
-            this.pos.x -= dir;
-        }
-    }
-
-    reset()
-    {
-        const pieces = 'ILJOTSZ';
-        this.matrix = this.createPiece(pieces[pieces.length * Math.random() | 0]);
-        this.pos.y = 0;
-        this.pos.x = (this.arena.matrix[0].length / 2 | 0) -
-                     (this.matrix[0].length / 2 | 0);
-        if (this.collide()) {
-            this.arena.matrix.forEach(row => row.fill(0));
-            this.score = 0;
-            this.events.emit(this.EVENT_SCORE_UPDATE);
-        }
-    }
-
-    rotateMatrix(matrix, dir) {
-        for (let y = 0; y < matrix.length; ++y) {
-            for (let x = 0; x < y; ++x) {
-                [
-                    matrix[x][y],
-                    matrix[y][x],
-                ] = [
-                    matrix[y][x],
-                    matrix[x][y],
-                ];
-            }
-        }
-
-        if (dir > 0) {
-            matrix.forEach(row => row.reverse());
-        } else {
-            matrix.reverse();
-        }
-    }
-
-    rotate(dir)
-    {
-        const pos = this.pos.x;
-        let offset = 1;
-        this.rotateMatrix(this.matrix, dir);
-        while (this.collide()) {
-            this.pos.x += offset;
-            offset = -(offset + (offset > 0 ? 1 : -1));
-            if (offset > this.matrix[0].length) {
-                this.rotateMatrix(this.matrix, -dir);
-                this.pos.x = pos;
-                return;
-            }
-        }
-    }
-
-    update(deltaTime)
-    {
-        this._dropCounter += deltaTime;
-        if (this._dropCounter > this._dropInterval) {
-            this.drop();
-        }
-    }
-}
-
-class Tetris
-{
-    constructor(context)
-    {
-        this._context = context;
-
-        this.colors = [
-            null,
-            '#FF0D72',
-            '#0DC2FF',
-            '#0DFF72',
-            '#F538FF',
-            '#FF8E0D',
-            '#FFE138',
-            '#3877FF',
-        ];
-
-        this.arena = new Arena(12, 20);
-
-        this.player = new Player(this.arena);
+        return this.createPiece('ILJOTSZ'[7 * Math.random() | 0]);
     }
 
     draw()
     {
-        this._context.fillStyle = '#000';
-        this._context.fillRect(0, 0,
-                               this._context.canvas.width,
-                               this._context.canvas.height);
-
-        this.drawMatrix(this.arena.matrix, {x: 0, y: 0});
-        this.drawMatrix(this.player.matrix, this.player.pos);
+        this.instances.forEach(tetris => tetris.draw());
     }
 
-    drawMatrix(matrix, offset)
+    drawMatrix(context, matrix, offset = {x: 0, y: 0})
     {
         matrix.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value !== 0) {
-                    this._context.fillStyle = this.colors[value];
-                    this._context.fillRect(x + offset.x,
-                                           y + offset.y,
-                                           1, 1);
+                    context.fillStyle = this.colors[value];
+                    context.fillRect(x + offset.x,
+                                     y + offset.y,
+                                     1, 1);
                 }
             });
         });
     }
 
+    getNextPiece()
+    {
+        const piece = this.nextPiece;
+
+        this.nextPiece = this.createRandomPiece();
+
+        const size = [
+            this.preview.canvas.width,
+            this.preview.canvas.height,
+        ];
+
+        this.preview.fillStyle = '#000';
+        this.preview.fillRect(0, 0, ...size);
+
+        const offset = {
+            x: (size[0] / 2) / 20 - this.nextPiece[0].length / 2,
+            y: (size[1] / 2) / 20 - this.nextPiece.length / 2,
+        };
+
+        this.drawMatrix(this.preview, this.nextPiece, offset);
+        return piece;
+    }
+
     update(deltaTime)
     {
-        this.player.update(deltaTime);
+        this.instances.forEach(tetris => tetris.update(deltaTime));
     }
 }
 
-const tetri = [];
-const playerElements = document.querySelectorAll('.player');
-[...playerElements].forEach(element => {
-    const canvas = element.querySelector('canvas');
-    const context = canvas.getContext('2d');
-    context.scale(20, 20);
-
-    const tetris = new Tetris(context);
-
-    const score = element.querySelector('.score');
-    tetris.player.events.listen(tetris.player.EVENT_SCORE_UPDATE, () => {
-        score.innerText = tetris.player.score;
-    });
-
-    tetri.push(tetris);
-});
-
-tetris.player.events.listen(tetris.player.EVENT_SCORE_UPDATE, () => {
-    document.getElementById('score').innerText = tetris.player.score;
-});
+const element = document.querySelector('#tetri');
+const tetri = new TetrisGovernor(element);
 
 document.addEventListener('keydown', event => {
-    if (event.keyCode === 37) {
-        tetri[0].player.move(-1);
-    } else if (event.keyCode === 39) {
-        tetri[0].player.move(1);
-    } else if (event.keyCode === 40) {
-        tetri[0].player.drop();
-    } else if (event.keyCode === 81) {
-        tetri[0].player.rotate(-1);
-    } else if (event.keyCode === 87) {
-        tetri[0].player.rotate(1);
-    }
+    [
+        [65, 68, 83, 81, 69],
+        [52, 54, 53, 57, 55],
+    ].forEach((keys, index) => {
+        const t = tetri.instances[index];
+        if (event.keyCode === keys[0]) {
+            t.player.move(-1);
+        } else if (event.keyCode === keys[1]) {
+            t.player.move(1);
+        } else if (event.keyCode === keys[2]) {
+            t.player.drop();
+        } else if (event.keyCode === keys[3]) {
+            t.player.rotate(-1);
+        } else if (event.keyCode === keys[4]) {
+            t.player.rotate(1);
+        }
+    });
 });
 
 let lastTime = 0;
@@ -320,9 +396,9 @@ function update(time = 0) {
     const deltaTime = time - lastTime;
     lastTime = time;
 
-    tetris.update(deltaTime);
+    tetri.update(deltaTime);
+    tetri.draw();
 
-    tetris.draw();
     requestAnimationFrame(update);
 }
 
